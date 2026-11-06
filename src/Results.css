@@ -223,3 +223,41 @@
     gap: 7px;
   }
 }
+
+
+.results-loading {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.results-loading-spinner {
+  width: 34px;
+  height: 34px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-top-color: #d6b47e;
+  border-radius: 50%;
+  animation: results-spin 1s linear infinite;
+}
+
+.results-loading p {
+  margin: 8px 0 0;
+  color: #d6b47e;
+  font: 700 11px 'Manrope', sans-serif;
+  letter-spacing: 2.5px;
+}
+
+.results-loading span {
+  color: #71808d;
+  font-size: 12px;
+}
+
+@keyframes results-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
