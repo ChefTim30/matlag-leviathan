@@ -72,8 +72,6 @@ function Results() {
       return
     }
 
-    // When a closed round appears for the first time, reveal its final
-    // result gradually instead of showing the finished numbers instantly.
     if (!poll.voting_open && animatedPollId.current !== poll.id) {
       animatedPollId.current = poll.id
 
@@ -102,7 +100,6 @@ function Results() {
       return () => cancelAnimationFrame(frameId)
     }
 
-    // While voting is open, show the live numbers normally.
     setDisplayResults(results)
   }, [poll, results])
 
@@ -145,11 +142,6 @@ function Results() {
 
             <h2>{poll.question}</h2>
 
-            <div className="vote-total">
-              <strong>{totalVotes}</strong>
-              <span>ВСЕГО ГОЛОСОВ</span>
-            </div>
-
             <div className="result-list">
               {displayResults.map((item, index) => {
                 const votes = Number(item.vote_count)
@@ -169,7 +161,6 @@ function Results() {
 
                       <div className="result-numbers">
                         <strong>{percent}%</strong>
-                        <span>{votes}</span>
                       </div>
                     </div>
 
