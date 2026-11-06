@@ -1,13 +1,14 @@
-
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 import './Results.css'
 
 function Results() {
   const [poll, setPoll] = useState(null)
   const [results, setResults] = useState([])
+  const [displayResults, setDisplayResults] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const animatedPollId = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -31,6 +32,7 @@ function Results() {
         if (active) {
           setPoll(null)
           setResults([])
+          setDisplayResults([])
           setLoading(false)
         }
         return
@@ -56,7 +58,7 @@ function Results() {
     }
 
     loadResults()
-    const timer = setInterval(loadResults, 2000)
+    const timer = setInterval(loadResults, 5000)
 
     return () => {
       active = false
@@ -64,7 +66,47 @@ function Results() {
     }
   }, [])
 
-  const totalVotes = results.reduce(
+  useEffect(() => {
+    if (!poll || !results.length) {
+      setDisplayResults([])
+      return
+    }
+
+    // When a closed round appears for the first time, reveal its final
+    // result gradually instead of showing the finished numbers instantly.
+    if (!poll.voting_open && animatedPollId.current !== poll.id) {
+      animatedPollId.current = poll.id
+
+      const start = performance.now()
+      const duration = 5000
+      let frameId
+
+      function animate(now) {
+        const progress = Math.min((now - start) / duration, 1)
+        const eased = 1 - Math.pow(1 - progress, 3)
+
+        setDisplayResults(
+          results.map(item => ({
+            ...item,
+            vote_count: Math.round(Number(item.vote_count) * eased),
+          }))
+        )
+
+        if (progress < 1) {
+          frameId = requestAnimationFrame(animate)
+        }
+      }
+
+      frameId = requestAnimationFrame(animate)
+
+      return () => cancelAnimationFrame(frameId)
+    }
+
+    // While voting is open, show the live numbers normally.
+    setDisplayResults(results)
+  }, [poll, results])
+
+  const totalVotes = displayResults.reduce(
     (sum, item) => sum + Number(item.vote_count),
     0
   )
@@ -109,7 +151,7 @@ function Results() {
             </div>
 
             <div className="result-list">
-              {results.map((item, index) => {
+              {displayResults.map((item, index) => {
                 const votes = Number(item.vote_count)
                 const percent = totalVotes
                   ? Math.round((votes / totalVotes) * 100)
