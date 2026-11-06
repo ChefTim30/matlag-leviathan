@@ -8,7 +8,9 @@ function Results() {
   const [displayResults, setDisplayResults] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [resultsRevealed, setResultsRevealed] = useState(false)
   const animatedPollId = useRef(null)
+  const revealTimerRef = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -63,18 +65,58 @@ function Results() {
     return () => {
       active = false
       clearInterval(timer)
+      if (revealTimerRef.current) {
+        clearTimeout(revealTimerRef.current)
+        revealTimerRef.current = null
+      }
     }
   }, [])
 
   useEffect(() => {
     if (!poll || !results.length) {
       setDisplayResults([])
+      setResultsRevealed(false)
       return
     }
 
-    if (!poll.voting_open && animatedPollId.current !== poll.id) {
-      animatedPollId.current = poll.id
+    if (poll.voting_open) {
+      if (revealTimerRef.current) {
+        clearTimeout(revealTimerRef.current)
+        revealTimerRef.current = null
+      }
+      setResultsRevealed(true)
+      setDisplayResults(results)
+      return
+    }
 
+    if (animatedPollId.current !== poll.id) {
+      animatedPollId.current = poll.id
+      setResultsRevealed(false)
+      setDisplayResults([])
+
+      if (revealTimerRef.current) {
+        clearTimeout(revealTimerRef.current)
+      }
+
+      revealTimerRef.current = setTimeout(() => {
+        setResultsRevealed(true)
+        revealTimerRef.current = null
+      }, 15000)
+
+      return () => {
+        if (revealTimerRef.current) {
+          clearTimeout(revealTimerRef.current)
+          revealTimerRef.current = null
+        }
+      }
+    }
+
+    if (!resultsRevealed) {
+      setDisplayResults([])
+      return
+    }
+
+    if (!poll.voting_open && resultsRevealed) {
       const start = performance.now()
       const duration = 5000
       let frameId
@@ -142,6 +184,13 @@ function Results() {
 
             <h2>{poll.question}</h2>
 
+            {!resultsRevealed && !poll.voting_open ? (
+              <div className="results-loading">
+                <div className="results-loading-spinner" />
+                <p>ЗАГРУЗКА РЕЗУЛЬТАТОВ...</p>
+                <span>Пожалуйста, подождите</span>
+              </div>
+            ) : (
             <div className="result-list">
               {displayResults.map((item, index) => {
                 const votes = Number(item.vote_count)
@@ -174,6 +223,7 @@ function Results() {
                 )
               })}
             </div>
+            )}
 
             <div className="results-bottom">
               {poll.voting_open
