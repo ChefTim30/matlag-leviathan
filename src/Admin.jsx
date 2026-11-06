@@ -265,19 +265,6 @@ function Admin() {
                       ЗАКРЫТЬ ГОЛОСОВАНИЕ
                     </button>
 
-                    <button
-                      className="danger-button"
-                      disabled={busy}
-                      onClick={() => {
-                        if (window.confirm(
-                          'Удалить все голоса текущего раунда? Это действие нельзя отменить.'
-                        )) {
-                          runAction('admin_reset_votes')
-                        }
-                      }}
-                    >
-                      СБРОСИТЬ ТЕСТОВЫЕ ГОЛОСА
-                    </button>
                   </div>
                 )}
               </article>
